@@ -89,3 +89,9 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+void*
+sys_shmget(int shared_page_id)
+{
+  return (void*) 0; //TODO: Add Implementation
+}
