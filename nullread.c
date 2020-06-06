@@ -6,10 +6,14 @@
 int main(int argc, char const *argv[])
 {
 	int* pointer;
+	int number = 8;
 
 	pointer = (void*)0;
 
-	printf(ONE, "NULL Pointer Content: %p\n", *pointer);
+	number = (int)*pointer;
+
+
+	printf(ONE, "NULL Pointer Content: %d\n", number);
 
 	exit();
 }
