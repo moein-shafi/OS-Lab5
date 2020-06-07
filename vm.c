@@ -385,6 +385,12 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   return 0;
 }
 
+void*
+shm(int shared_page_id)
+{ 
+  return (void*) 0;
+}
+
 //PAGEBREAK!
 // Blank page.
 //PAGEBREAK!
