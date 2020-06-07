@@ -91,7 +91,17 @@ sys_uptime(void)
 }
 
 void*
-sys_shmget(int shared_page_id)
+sys_shmget(void)
 {
-  return (void*) 0; //TODO: Add Implementation
+  int shared_page_id;
+
+  if (argint(0, &shared_page_id) < 0) {
+    return (void*)0;
+  }
+
+  if (shared_page_id < 1 || shared_page_id > 3) {
+    return (void*) 0; 
+  }
+  
+  return shm(shared_page_id); 
 }
