@@ -95,13 +95,11 @@ sys_shmget(void)
 {
   int shared_page_id;
 
-  if (argint(0, &shared_page_id) < 0) {
+  if (argint(0, &shared_page_id) < 0)
+  {
+    cprintf("Bad usage!\n");
     return (void*)0;
   }
 
-  if (shared_page_id < 1 || shared_page_id > 3) {
-    return (void*) 0; 
-  }
-  
-  return shm(shared_page_id); 
+  return shm(shared_page_id);
 }

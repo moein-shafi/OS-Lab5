@@ -9,6 +9,7 @@
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
+void *shm_addr[SHM_PAGES + 1];
 
 // Set up CPU's kernel segment descriptors.
 // Run once on entry on each CPU.
@@ -224,8 +225,11 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
 
-  if(newsz >= KERNBASE)
+  struct proc *curproc = myproc();
+  if(newsz >= (KERNBASE - ((curproc->shm_pages + 1) * PGSIZE)))
+  {
     return 0;
+  }
   if(newsz < oldsz)
     return oldsz;
 
@@ -285,9 +289,10 @@ freevm(pde_t *pgdir)
 {
   uint i;
 
+  struct proc *curproc = myproc();
   if(pgdir == 0)
     panic("freevm: no pgdir");
-  deallocuvm(pgdir, KERNBASE, 0);
+  deallocuvm(pgdir, KERNBASE - ((curproc->shm_pages + 1) * PGSIZE), 0);
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P){
       char * v = P2V(PTE_ADDR(pgdir[i]));
@@ -385,10 +390,51 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   return 0;
 }
 
+void
+shminit(void)
+{
+  for(int i = 0; i < SHM_PAGES; i++)
+  {
+    if((shm_addr[i + 1] = kalloc()) == 0)
+    {
+      panic("shmeminit failed");
+    }
+  }
+}
+
 void*
 shm(int shared_page_id)
-{ 
-  return (void*) 0;
+{
+
+  if (shared_page_id < 1 || shared_page_id > SHM_PAGES)
+  {
+    cprintf("invalid page number!.\n");
+    return (void*) 0;
+  }
+
+  struct proc *curproc = myproc();
+
+  /// TODO: delete this print.
+  for(int i = 0; i < SHM_PAGES; i++)
+      cprintf("page: %d       value: %x\n", i + 1, curproc->shms[i + 1]);
+
+  if(curproc->shms[shared_page_id] != (void*)0)
+  {
+      cprintf("already in use.\n");
+      return curproc->shms[shared_page_id];
+  }
+
+  void *mapping = (void*) (KERNBASE - ((curproc->shm_pages + 1) * PGSIZE));
+
+  if(curproc->sz >= (int)mapping)
+      return (void*) 0;
+
+  if(mappages(curproc->pgdir, mapping, PGSIZE, (uint)(shm_addr[shared_page_id]), PTE_W|PTE_U) < 0)
+      return (void*) 0;
+
+  curproc->shm_pages++;
+  curproc->shms[shared_page_id] = mapping;
+  return mapping;
 }
 
 //PAGEBREAK!
