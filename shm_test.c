@@ -11,6 +11,7 @@ int main(int argc, char const *argv[])
 	    printf(1, "pid: %d,        page_id: 1,  result: %x\n\n", pid, (void*)shmget(1));
 	    printf(1, "pid: %d,        page_id: 2,  result: %x\n\n", pid, (void*)shmget(2));
 
+        printf(1, ">>>> dead child.\n");
         exit();
     }
 
@@ -22,11 +23,11 @@ int main(int argc, char const *argv[])
 	printf(1, "pid: %d,        page_id: 1,  result: %x\n\n", pid, (void*)shmget(1));
 
     int j = 0;
-    for (int i = 0; i < 99999999; i++)
+    for (int i = 0; i < 999999999; i++)
     {
         j++;
     }
 
-	printf(1, "dead father.\n");
+	printf(1, ">>>> dead father.\n");
 	exit();
 }

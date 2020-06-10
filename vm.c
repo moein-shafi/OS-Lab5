@@ -225,8 +225,7 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
 
-  struct proc *curproc = myproc();
-  if(newsz >= (KERNBASE - ((curproc->shm_pages_number + 1) * PGSIZE)))
+  if(newsz >= (KERNBASE - SHM_PAGES * PGSIZE))
   {
     return 0;
   }
@@ -292,11 +291,10 @@ freevm(pde_t *pgdir)
 {
   uint i;
 
-  struct proc *curproc = myproc();
   if(pgdir == 0)
     panic("freevm: no pgdir");
 
-  deallocuvm(pgdir, KERNBASE - ((curproc->shm_pages_number + 1) * PGSIZE), 0);
+  deallocuvm(pgdir, KERNBASE - SHM_PAGES * PGSIZE, 0);
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P){
       char * v = P2V(PTE_ADDR(pgdir[i]));
@@ -428,7 +426,7 @@ shm(int shared_page_id)
       return curproc->shms[shared_page_id - 1];
   }
 
-  void *mapping = (void*) (KERNBASE - ((curproc->shm_pages_number + 1) * PGSIZE));
+  void *mapping = (void*) (KERNBASE - ((SHM_PAGES - shared_page_id + 1) * PGSIZE));
 
   if(curproc->sz >= (int)mapping)
       return (void*) 0;
