@@ -415,11 +415,6 @@ shm(int shared_page_id)
   }
 
   struct proc *curproc = myproc();
-
-  /// TODO: delete this print.
-  for(int i = 0; i < SHM_PAGES; i++)
-      cprintf("page: %d       value: %x\n", i + 1, curproc->shms[i]);
-
   if(curproc->shms[shared_page_id - 1] != (void*)0)
   {
       cprintf("already in use.\n");
