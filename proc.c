@@ -112,10 +112,10 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
 
-  p->shm_pages = 0;
+  p->shm_pages_number = 0;
   for(int i = 0; i < SHM_PAGES; i++)
   {
-      p->shms[i + 1] = (void*) 0;
+      p->shms[i] = (void*) 0;
   }
 
   return p;
@@ -222,10 +222,10 @@ fork(void)
 
   np->state = RUNNABLE;
 
-  np->shm_pages = curproc->shm_pages;
+  np->shm_pages_number = curproc->shm_pages_number;
   for(i = 0; i < SHM_PAGES; i++)
   {
-      np->shms[i + 1] = curproc->shms[i + 1];
+      np->shms[i] = curproc->shms[i];
   }
 
   release(&ptable.lock);
@@ -301,12 +301,6 @@ wait(void)
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
-
-        for(int k = 0; k < SHM_PAGES; k++)
-        {
-            curproc->shms_child[k + 1] = p->shms[k + 1];
-        }
-
         freevm(p->pgdir);
         p->pid = 0;
         p->parent = 0;

@@ -9,7 +9,7 @@
 
 extern char data[];  // defined by kernel.ld
 pde_t *kpgdir;  // for use in scheduler()
-void *shm_addr[SHM_PAGES + 1];
+void *shm_addr[SHM_PAGES];
 
 // Set up CPU's kernel segment descriptors.
 // Run once on entry on each CPU.
@@ -226,7 +226,7 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   uint a;
 
   struct proc *curproc = myproc();
-  if(newsz >= (KERNBASE - ((curproc->shm_pages + 1) * PGSIZE)))
+  if(newsz >= (KERNBASE - ((curproc->shm_pages_number + 1) * PGSIZE)))
   {
     return 0;
   }
@@ -292,7 +292,7 @@ freevm(pde_t *pgdir)
   struct proc *curproc = myproc();
   if(pgdir == 0)
     panic("freevm: no pgdir");
-  deallocuvm(pgdir, KERNBASE - ((curproc->shm_pages + 1) * PGSIZE), 0);
+  deallocuvm(pgdir, KERNBASE - ((curproc->shm_pages_number + 1) * PGSIZE), 0);
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P){
       char * v = P2V(PTE_ADDR(pgdir[i]));
@@ -395,7 +395,7 @@ shminit(void)
 {
   for(int i = 0; i < SHM_PAGES; i++)
   {
-    if((shm_addr[i + 1] = kalloc()) == 0)
+    if((shm_addr[i] = kalloc()) == 0)
     {
       panic("shmeminit failed");
     }
@@ -416,24 +416,24 @@ shm(int shared_page_id)
 
   /// TODO: delete this print.
   for(int i = 0; i < SHM_PAGES; i++)
-      cprintf("page: %d       value: %x\n", i + 1, curproc->shms[i + 1]);
+      cprintf("page: %d       value: %x\n", i + 1, curproc->shms[i]);
 
-  if(curproc->shms[shared_page_id] != (void*)0)
+  if(curproc->shms[shared_page_id - 1] != (void*)0)
   {
       cprintf("already in use.\n");
-      return curproc->shms[shared_page_id];
+      return curproc->shms[shared_page_id - 1];
   }
 
-  void *mapping = (void*) (KERNBASE - ((curproc->shm_pages + 1) * PGSIZE));
+  void *mapping = (void*) (KERNBASE - ((curproc->shm_pages_number + 1) * PGSIZE));
 
   if(curproc->sz >= (int)mapping)
       return (void*) 0;
 
-  if(mappages(curproc->pgdir, mapping, PGSIZE, (uint)(shm_addr[shared_page_id]), PTE_W|PTE_U) < 0)
+  if(mappages(curproc->pgdir, mapping, PGSIZE, (uint)(shm_addr[shared_page_id - 1]), PTE_W|PTE_U) < 0)
       return (void*) 0;
 
-  curproc->shm_pages++;
-  curproc->shms[shared_page_id] = mapping;
+  curproc->shm_pages_number++;
+  curproc->shms[shared_page_id - 1] = mapping;
   return mapping;
 }
 

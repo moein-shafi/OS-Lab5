@@ -100,14 +100,6 @@ exec(char *path, char **argv)
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
   switchuvm(curproc);
-
-  curproc->shm_pages = 0;
-  for(i = 0; i < SHM_PAGES; i++)
-  {
-      curproc->shms_child[i + 1] = curproc->shms[i + 1];
-      curproc->shms[i + 1] = (void*) 0;
-  }
-
   freevm(oldpgdir);
   return 0;
 
