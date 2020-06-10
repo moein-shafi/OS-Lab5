@@ -275,7 +275,10 @@ deallocuvm(pde_t *pgdir, uint oldsz, uint newsz)
       if(pa == 0)
         panic("kfree");
       char *v = P2V(pa);
-      kfree(v);
+
+//        cprintf("===== %x ========= %x ===============\n", oldsz, v);
+       kfree(v);
+//        cprintf("********************************\n\n");
       *pte = 0;
     }
   }
@@ -292,6 +295,7 @@ freevm(pde_t *pgdir)
   struct proc *curproc = myproc();
   if(pgdir == 0)
     panic("freevm: no pgdir");
+
   deallocuvm(pgdir, KERNBASE - ((curproc->shm_pages_number + 1) * PGSIZE), 0);
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P){
